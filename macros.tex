@@ -1,0 +1,111 @@
+% $Id$
+
+\usepackage{relsize}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{fancyvrb}
+\usepackage{colortbl}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{tabto}
+% Added listing for code listings
+\usepackage{listings}
+\usepackage{color}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{Gray}{gray}{0.1}
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,
+	breaklines=true,
+	captionpos=b,
+	keepspaces=true,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	tabsize=2
+}
+\lstdefinelanguage{Lambda}{%
+	morekeywords={%
+		if,then,else,fix % keywords go here
+	},%
+	morekeywords={[2]int},   % types go here
+	otherkeywords={:}, % operators go here
+	literate={% replace strings with symbols
+		{->}{{$\to$}}{2}
+		{lambda}{{$\lambda$}}{1}
+	},
+	basicstyle={\footnotesize},
+	keywordstyle={\bfseries},
+	keywordstyle={[2]\itshape}, % style for types
+	keepspaces,
+	mathescape % optional
+}[keywords,comments,strings]%
+%"mystyle" code listing set
+\lstset{style=mystyle}
+% formatting for grammars
+\input{obey}
+\input{grammar}
+\newcommand{\oneormore}[1]{#1\ensuremath{^+}}
+
+
+% Uncomment this to include oper-semantics related macros
+% \input{oper-macros}
+
+% Uncomment this to include type-checking related macros
+% \input{type-macros}
+
+
+% Help LaTeX not violate the column margins
+\tolerance=50000
+
+\newcommand*{\code}[1]{\texttt{#1}}
+
+% Settings for the listings package
+\lstset{language=[AspectJ]Java,basicstyle=\ttfamily,commentstyle=\ttfamily,numbers=left,numberstyle=\tiny,numbersep=2pt,numberblanklines=false,morekeywords={cast,evtype,event,register,loc,chain,under,delegate}}
+
+% could use \relsize{-2} instead of \scriptsize below
+\newcommand{\FIGCODEFONT}{\relsize{-1}\ttfamily}
+
+\newcommand{\LSTAJFILE}[1]{
+\lstinputlisting[basicstyle=\FIGCODEFONT]{#1}
+}
+\newcommand{\LSTAJFILESLICE}[2]{
+\lstinputlisting[gobble=4,basicstyle=\FIGCODEFONT,linerange={#1}]{#2}
+}
+
+% cross referencing
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\fignref}[1]{Figure~\ref{#1}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\secnref}[1]{Section~\ref{#1}}
+
+\newcommand{\etal}{~\textit{et al.}}
+\newcommand{\kind}{\textit{kind}}
+\newcommand{\KIND}{\textit{KIND}}
+
+% Allow figures to take up the entire page
+\renewcommand\floatpagefraction{.99}
+\renewcommand\topfraction{.99}
+\renewcommand\bottomfraction{.90}
+\renewcommand\textfraction{.01}
+
+% Theorems environment...
+%{theorems}
+% Some helpful notation
+\newcommand{\PROOF}{{\em Proof:\/}~~}
+\newcommand{\PROOFSKETCH}{{\em Proof Sketch:\/}~~}
+\newcommand{\QED}{\rule{0.4em}{0.65em}}
+
+\definecolor{light-gray}{gray}{0.75}
