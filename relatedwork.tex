@@ -7,4 +7,8 @@ Albarghouthi \etal proposed a verification tool, FairSquare, for automatically d
 More specifically, fairness properties are formalized as
 probabilistic specifications of decision-making programs. FairSquare has a probabilistic precondition defining a probability distribution over input to the decision-making program.  Then it has a quantitative postcondition that can encode various fairness properties.
 
+There is a continuation  work on the FairSquare tool to better understand what fairness is in the context of any decision making program~\cite{albarghouthi2019fairness}. In this paper, the authors describe a different model of defining a precondition and postcondition that holds for a decision making program. They propose a first-class construct for a programming language where given a procedure \textit{f}, it satisfies some notion of fairness $\theta$ using \textit{decorators} in the programming language Python. This allows the injection of code to monitor the procedure \textit{f} as well as perform error checking when the assertions of $\theta$ are violated.
+
+
+
 There are several works in software engineering community~\cite{aggarwal2019black} that address discrimination as a test-intensive in a black-box settings.

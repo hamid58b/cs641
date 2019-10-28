@@ -1,3 +1,8 @@
 \section{Approach}
 \label{sec:approach}
 
+We propose adding to the fairness programming specification to utilize domain knowledge around a decision making program to improve the runtime of the program. In the current work, they describe monitoring the program with a fairness specification that has to be upheld at each execution of the procedure \textit{f}. Our proposal adds to the fairness specification domain knowledge about the inputs to the procedure \textit{f} such that the monitoring does not have to be check at every runtime if the inputs fall inside the distribution.
+
+
+
+i.e.$ \textit{spec}(\textit{pr}(h | m) / \textit{pr}(h | \neg m) < 0.2$ which specifies the probability that someone is hired $m$ given that they are a minority $m$ has to be within a certain threshold of the probability that someone is hired given they are not a minority (which gives notion to being not biased). This specification is analyzed at runtime to develop the distribution of $m$ which can take time depending on the size of $f$. We propose using domain knowledge to build a \textit{population model} to create a distribution of $m$ that we believe to be true and use it to determine if we have to verify fairness during runtime.
