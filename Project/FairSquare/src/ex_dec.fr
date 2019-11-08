@@ -1,0 +1,4 @@
+
+@spec(True)
+def f(param)
+    return param
