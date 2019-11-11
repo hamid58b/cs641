@@ -2,77 +2,40 @@ import ast
 import inspect
 import time
 
+def f_phi(f, E_s, phi, *args):
+    r = f(*args)
+    # Check phi for the estimates and update the distributions
+    # Create psi by replacing all of the expected values in phi with the estimates from the new distributions
+    # Evaluate psi with the new estimates and determine true or false
+    # Check if this evaluation is false and above k threshold then throw an error
+    # else return
 
-class spec(object):
-    #TODO: Specify confidence interval???? as a new specification
-    #phi is a boolean function with args and return function as input
-    def __init__(self, phi):
-        self.phi = phi
-        self.distributions = []
-
-    # Add aggregate arguments to distributions
-    def _update_distributions(self, args):
-        for i in range(len(args)):
-            if self.distributions[i] is None:
-                self.distributions[i] = []
-            self.distributions[i].append(args[i])
-
-    def _mean_and_std_distributions(self):
-        means = []
-        stds = []
-        for distribution in self.distributions:
-            total = 0
-            for v in distribution:
-                total += v
-            means.append(total / len(distribution))
-
-
-
-    def __call__(self, func):
-        # Happens on the definition of the decorator
-        ast_node = ast.parse(inspect.findsource(func))
-
-        def wrap(*args, **kwargs):
-
-            self._update_distributions(args)
-
-            returnvalue = func(*args, **kwargs)
-            if self.phi(args, returnvalue):
-                return returnvalue
-            else:
-                raise ValueError("Fairness Violation")
-        return wrap
+    return r
 
 
 class specdomain(object):
-    # phi is a boolean function with args and return function as input
-    def __init__(self, phi, domainknowledge):
+    # phi is the fairness assertion
+    def __init__(self, phi, popModel):
         self.phi = phi
-        self.domainknowledge = domainknowledge
+        self.popModel = popModel
+        self.count = 0
 
     def __call__(self, func):
-        # Happens on the definition of the decorator
-        ast_node = ast.parse(inspect.findsource(func))
-        # run domain knowledge here on function
+        self.name = func.__name__
+        # func is the hire function
+        # run domain knowledge (popModel) here on func (hire)
+        # check if domain knowledge satisfies phi, if not throw error
+        # run FairSquare with hire and popModel and report any errors
+        # Update count of samples taken
+
         def wrap(*args, **kwargs):
-            # Add aggregate arguements to distributions
-            returnvalue = func(*args, **kwargs)
-            # check if arguments fall into domainknowledge if so return without calling phi else run solver to check phi
-            if self.phi(args, returnvalue):
-                return returnvalue
-            else:
-                raise ValueError("Fairness Violation")
+            # Check if args falls within popModel, if so call func and return
+
+            # Call the original transformed function in @spec which will do all of the phi calculations
+            # Add aggregate arguments to distributions
+            self.count += 1
+            return f_phi(func, self.popModel, self.phi, *args)
 
         return wrap
 
-def timer(func):
-
-    def inner(*args, **kwargs):
-        start = time.time()
-
-        returnvalue = func(*args, **kwargs)
-
-        print("Time of Function: " + str(time.time() - start))
-        return returnvalue
-    return inner
 

@@ -1,11 +1,13 @@
 
 from decorators import *
 
-def phi(args, returnvalue):
-    return True
-
 # Deciding function that hires a person with these three parameters
-@spec(phi)
+from simulate import gaussian
+
+
+# @spec("pr(hire | ethnicity) / pr(hire | not ethnicity) > 0.8")
+@specdomain("pr(hire | ethnicity) / pr(hire | not ethnicity) > 0.8",
+            (gaussian(25,100), gaussian(10,25), gaussian(0,100)))
 def hire(colRank, yExp, ethnicity):
     if ethnicity > 10:
         colRank = colRank + 5
