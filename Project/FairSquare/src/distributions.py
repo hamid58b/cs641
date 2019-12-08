@@ -23,6 +23,12 @@ class Distribution(object):
     def __le__(self, other):
         raise NotImplementedError()
 
+    def __radd__(self, other):
+        raise NotImplementedError()
+
+    def __contains__(self, item):
+        raise NotImplementedError()
+
 
 
 class Discrete(Distribution):
@@ -59,6 +65,9 @@ class Gaussian(Distribution):
         self.CI = CI
         self.dist = stats.norm(loc=mean, scale=variance)
 
+    def __call__(self, *args, **kwargs):
+        return self.dist.rvs()
+
     def __eq__(self, other):
         if isinstance(other, (int, float)):
             return self.dist.pdf(other)
@@ -69,3 +78,41 @@ class Gaussian(Distribution):
 
     def __str__(self):
         return str("Mean: " + str(self.mean) + " Variance: " + str(self.variance))
+
+
+
+class DataPointList(object):
+    def __init__(self, names):
+        self.names = names
+        self.data = []
+
+    def append(self, row):
+        self.data.append(row)
+
+    def __contains__(self, item):
+        return item in self.names
+
+    def __call__(self, *args, **kwargs):
+        func = args[0]
+        new_data = DataPointList(self.names)
+        for point in self.data:
+            if func(point):
+                new_data.append(point)
+        return new_data
+
+    def __len__(self):
+        return len(self.data)
+
+    def mean_variance(self, name):
+        total = len(self)
+        count = 0
+        for point in self.data:
+            count += point[name]
+        mean = count / total
+        count = 0
+        for point in self.data:
+            count += (point[name] - mean) * (point[name] - mean)
+        return mean, count / total
+
+    def calculate_z(self, name):
+        return 0
