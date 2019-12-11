@@ -75,7 +75,7 @@ class PhiListVisitor(ast.NodeVisitor):
                 return _make_filter_function(node.ops[0], left, right)
             elif isinstance(right, str):
                 return _make_filter_function(node.ops[0], right, left)
-        print("Comparing: " + str(left) + " | " + str(right))
+        # print("Comparing: " + str(left) + " | " + str(right))
         return _make_comp_op(node.ops[0], left, right)
 
     def visit_BinOp(self, node):
@@ -213,27 +213,27 @@ class specdomain(object):
 
     def __f_phi__(self, func, args, skip_check=False):
         r = func(*args)
+
+        # Check if args are in the distribution list
+        if not skip_check:
+            inside_distributions = True
+            for i in range(len(args)):
+                a, b = self.data_list.ci(self.func_args.args[i], 0.85)
+                if not (a < args[i] < b):
+                    inside_distributions = False
+                    break
+            if inside_distributions:
+                return r
+
+        # Add aggregate arguments to updated distributions
         self.distributions[self.func_name].append(r)
         self.__append_data_point(r, args)
 
-        if not skip_check:
-            pass
-            #Check if args are in the distribution list
-            # inside_distributions = True
-            # for i in range(len(args)):
-            #     a, b = self.distributions[self.func_args.args[i]].ci()
-            #     if not (a < args[i] < b):
-            #         inside_distributions = False
-            #         break
-            # if inside_distributions:
-            #     return r
-
         self.count += 1
-        #Update estimates for phi
+        # Update estimates for phi
         uEval = self.visitor.visit(self.phi_ast_node)
-        if not skip_check:
-            # Add aggregate arguments to updated distributions
-            pass
+
+        # Check uEval estimate and with threshold
         if not uEval and self.count > 50:
             raise FairnessAssertionError(self.func_name, self.phi_str, self.count)
         return r
@@ -256,14 +256,16 @@ class specdomain(object):
         self.phi_ast_node = ast.parse(self.phi_str)
         self.visitor = PhiListVisitor(self.data_list)
 
+        # Run domain knowledge to gather domain about the set (Tune Hyperparameter
         for t in range(1000):
             params = []
             for arg in self.func_args.args:
                 params.append(self.distributions[arg]())
             self.__f_phi__(func, params, skip_check=True)
+            print(self.data_list.mean_variance)
 
-        # run FairSquare with hire and popModel and report any errors
 
+        # Wrap the function to be used when f is called
         def wrap(*args, **kwargs):
             return self.__f_phi__(func, *args)
 

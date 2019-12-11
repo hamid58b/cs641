@@ -85,9 +85,21 @@ class DataPointList(object):
     def __init__(self, names):
         self.names = names
         self.data = []
+        self.mean_variance = {}
+        for name in self.names:
+            self.mean_variance[name] = [0, 0]
+
 
     def append(self, row):
+        n = len(self.data)
         self.data.append(row)
+        for key, value in row.items():
+            prev_mu = self.mean_variance[key][0]
+            self.mean_variance[key][0] = (n * prev_mu + value) / (n + 1)
+            if n > 0:
+                self.mean_variance[key][1] = ((n - 1) * self.mean_variance[key][1]) / n + (n * ((prev_mu - value) ** 2))/((n + 1) * n)
+            else:
+                self.mean_variance[key][1] = 0
 
     def __contains__(self, item):
         return item in self.names
@@ -103,16 +115,19 @@ class DataPointList(object):
     def __len__(self):
         return len(self.data)
 
-    def mean_variance(self, name):
-        total = len(self)
-        count = 0
-        for point in self.data:
-            count += point[name]
-        mean = count / total
-        count = 0
-        for point in self.data:
-            count += (point[name] - mean) * (point[name] - mean)
-        return mean, count / total
+    # def mean_variance(self, name):
+    #     total = len(self)
+    #     count = 0
+    #     for point in self.data:
+    #         count += point[name]
+    #     mean = count / total
+    #     count = 0
+    #     for point in self.data:
+    #         count += (point[name] - mean) * (point[name] - mean)
+    #     return mean, count / total
 
-    def calculate_z(self, name):
-        return 0
+    def ci(self, name, percent):
+        z = stats.zscore([percent])[0]
+        c = z * (math.sqrt(self.mean_variance[name][1]) / math.sqrt(len(self.data)))
+        return self.mean_variance[name][0] - c, self.mean_variance[name][0] + c
+
