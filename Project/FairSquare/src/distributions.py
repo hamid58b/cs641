@@ -1,8 +1,9 @@
 import math
 from typing import List
+
+import numpy as np
 import scipy.stats as stats
 
-import numpy.random as np
 
 # TODO Implement the methods for each distribution implementation
 # This includes the operands: | < > <= >= == &
@@ -115,19 +116,9 @@ class DataPointList(object):
     def __len__(self):
         return len(self.data)
 
-    # def mean_variance(self, name):
-    #     total = len(self)
-    #     count = 0
-    #     for point in self.data:
-    #         count += point[name]
-    #     mean = count / total
-    #     count = 0
-    #     for point in self.data:
-    #         count += (point[name] - mean) * (point[name] - mean)
-    #     return mean, count / total
-
     def ci(self, name, percent):
-        z = stats.zscore([percent])[0]
-        c = z * (math.sqrt(self.mean_variance[name][1]) / math.sqrt(len(self.data)))
+        z = stats.t.ppf((1 + percent) / 2., len(self.data)-1)
+        k = math.sqrt(self.mean_variance[name][1]) / math.sqrt(len(self.data))
+        c = z * k
         return self.mean_variance[name][0] - c, self.mean_variance[name][0] + c
 

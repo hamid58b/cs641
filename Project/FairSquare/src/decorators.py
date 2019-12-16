@@ -189,6 +189,49 @@ class PhiDistVisitor(ast.NodeVisitor):
         return returns
 
 
+class spec(object):
+    def __init__(self, phi):
+        self.phi_str = phi
+
+    def __append_data_point(self, r, args):
+        row = {self.func_name: r}
+        for i in range(len(args)):
+            row[self.func_args.args[i]] = args[i]
+        self.data_list.append(row)
+
+    def __f_phi__(self, func, args):
+        r = func(*args)
+
+        # Add aggregate arguments to updated distributions
+        self.__append_data_point(r, args)
+
+        # Update estimates for phi
+        uEval = self.visitor.visit(self.phi_ast_node)
+
+        # Check uEval estimate and with threshold
+        # if not uEval and len(self.data_list) > 50:
+        #     raise FairnessAssertionError(self.func_name, self.phi_str, len(self.data_list))
+        return r
+
+
+    def __call__(self, func):
+        self.func_name = func.__name__
+        self.func_args = inspect.getfullargspec(func)
+
+        names = [self.func_name]
+        for arg in self.func_args.args:
+            names.append(arg)
+        self.data_list = DataPointList(names)
+
+        self.phi_ast_node = ast.parse(self.phi_str)
+        self.visitor = PhiListVisitor(self.data_list)
+
+        def wrap(*args, **kwargs):
+            return self.__f_phi__(func, args)
+
+        return wrap
+
+
 class specdomain(object):
     # phi is the fairness assertion
     def __init__(self, phi, popModel, log_level=logging.WARNING):
@@ -219,10 +262,12 @@ class specdomain(object):
             inside_distributions = True
             for i in range(len(args)):
                 a, b = self.data_list.ci(self.func_args.args[i], 0.85)
+                # print(str(a) + " < " + str(args[i]) + " < " + str(b))
                 if not (a < args[i] < b):
                     inside_distributions = False
                     break
             if inside_distributions:
+                logging.debug("Skipped run")
                 return r
 
         # Add aggregate arguments to updated distributions
@@ -234,8 +279,8 @@ class specdomain(object):
         uEval = self.visitor.visit(self.phi_ast_node)
 
         # Check uEval estimate and with threshold
-        if not uEval and self.count > 50:
-            raise FairnessAssertionError(self.func_name, self.phi_str, self.count)
+        # if not uEval and self.count > 50:
+        #     raise FairnessAssertionError(self.func_name, self.phi_str, self.count)
         return r
 
     def __call__(self, func):
@@ -256,17 +301,19 @@ class specdomain(object):
         self.phi_ast_node = ast.parse(self.phi_str)
         self.visitor = PhiListVisitor(self.data_list)
 
-        # Run domain knowledge to gather domain about the set (Tune Hyperparameter
+        # Run domain knowledge to gather domain about the set (Tune Hyperparameter)
+        self.logger.debug("Starting of Empirical data gathering")
+        start = time.time()
         for t in range(1000):
             params = []
             for arg in self.func_args.args:
                 params.append(self.distributions[arg]())
             self.__f_phi__(func, params, skip_check=True)
-            print(self.data_list.mean_variance)
 
+        self.logger.debug("End of Empirical data gathering " + str(time.time() - start))
 
         # Wrap the function to be used when f is called
         def wrap(*args, **kwargs):
-            return self.__f_phi__(func, *args)
+            return self.__f_phi__(func, args)
 
         return wrap
