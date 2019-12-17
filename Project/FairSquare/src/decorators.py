@@ -209,8 +209,8 @@ class spec(object):
         uEval = self.visitor.visit(self.phi_ast_node)
 
         # Check uEval estimate and with threshold
-        # if not uEval and len(self.data_list) > 50:
-        #     raise FairnessAssertionError(self.func_name, self.phi_str, len(self.data_list))
+        if not uEval and len(self.data_list) > 50:
+            raise FairnessAssertionError(self.func_name, self.phi_str, len(self.data_list))
         return r
 
 
@@ -284,8 +284,8 @@ class specdomain(object):
         uEval = self.visitor.visit(self.phi_ast_node)
 
         # Check uEval estimate and with threshold
-        # if not uEval and self.count > 50:
-        #     raise FairnessAssertionError(self.func_name, self.phi_str, self.count)
+        if not uEval and self.count > 50:
+            raise FairnessAssertionError(self.func_name, self.phi_str, self.count)
         return r
 
     def __call__(self, func):
