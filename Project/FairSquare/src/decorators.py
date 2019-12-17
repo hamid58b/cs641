@@ -234,10 +234,12 @@ class spec(object):
 
 class specdomain(object):
     # phi is the fairness assertion
-    def __init__(self, phi, popModel, log_level=logging.WARNING):
+    def __init__(self, phi, popModel, empirical_count=1000, proportion_within=0.8, log_level=logging.WARNING):
         self.phi_str = phi
         self.popModel = popModel
         self.count = 0
+        self.empirical_count = empirical_count
+        self.proportion_within = proportion_within
         self.logger = logging.getLogger("SpecDomain")
         self.logger.setLevel(log_level)
         self.logger.addHandler(logging.StreamHandler())
@@ -261,13 +263,16 @@ class specdomain(object):
         if not skip_check:
             inside_distributions = True
             for i in range(len(args)):
-                a, b = self.data_list.ci(self.func_args.args[i], 0.85)
-                # print(str(a) + " < " + str(args[i]) + " < " + str(b))
+                a, b = self.data_list.confidence(self.func_args.args[i], self.proportion_within)
                 if not (a < args[i] < b):
                     inside_distributions = False
+                    # print("Arguement outside " + str(self.func_args.args[i]) + " : " + str(a) + " < " + str(
+                    #     args[i]) + " < " + str(b))
                     break
+                # else:
+                #     print("Arguement inside " + str(self.func_args.args[i]) + " : " + str(a) + " < " + str(args[i]) + " < " + str(b))
             if inside_distributions:
-                logging.debug("Skipped run")
+                # self.logger.debug("Skipped run")
                 return r
 
         # Add aggregate arguments to updated distributions
@@ -286,7 +291,7 @@ class specdomain(object):
     def __call__(self, func):
         self.func_name = func.__name__
         self.func_args = inspect.getfullargspec(func)
-        self.logger.debug("Adding return value distribution of function: " + str(self.func_name))
+        self.logger.debug("Spec domain function name: " + str(self.func_name))
         self.distributions = {self.func_name: Discrete()}
         self.logger.debug("Creating Distributions from arguments: " + str(self.func_args.args))
         for i in range(len(self.popModel)):
@@ -301,16 +306,22 @@ class specdomain(object):
         self.phi_ast_node = ast.parse(self.phi_str)
         self.visitor = PhiListVisitor(self.data_list)
 
+        self.logger.debug("Default checking of " + str(100 * self.proportion_within) + "% of all values inside each parameter")
+
         # Run domain knowledge to gather domain about the set (Tune Hyperparameter)
-        self.logger.debug("Starting of Empirical data gathering")
+        self.logger.debug("Starting of Empirical data gathering of " + str(self.empirical_count) + " iterations")
         start = time.time()
-        for t in range(1000):
+        for t in range(self.empirical_count):
             params = []
             for arg in self.func_args.args:
                 params.append(self.distributions[arg]())
             self.__f_phi__(func, params, skip_check=True)
 
         self.logger.debug("End of Empirical data gathering " + str(time.time() - start))
+        self.logger.debug("Normal distributions of parameters: ")
+        for name, value in self.data_list.mean_variance.items():
+            self.logger.debug("\t Name: " + str(name) + " Mean: " + str(value[0]) + " Variance: " + str(value[1]))
+
 
         # Wrap the function to be used when f is called
         def wrap(*args, **kwargs):

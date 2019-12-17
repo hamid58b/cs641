@@ -98,7 +98,7 @@ class DataPointList(object):
             prev_mu = self.mean_variance[key][0]
             self.mean_variance[key][0] = (n * prev_mu + value) / (n + 1)
             if n > 0:
-                self.mean_variance[key][1] = ((n - 1) * self.mean_variance[key][1]) / n + (n * ((prev_mu - value) ** 2))/((n + 1) * n)
+                self.mean_variance[key][1] = ((n - 1) * self.mean_variance[key][1]) / n + math.pow(prev_mu - value, 2) / (n + 1)
             else:
                 self.mean_variance[key][1] = 0
 
@@ -116,9 +116,10 @@ class DataPointList(object):
     def __len__(self):
         return len(self.data)
 
-    def ci(self, name, percent):
+    def confidence(self, name, percent):
+        # c = sigma_mult * math.sqrt(self.mean_variance[name][1])
         z = stats.t.ppf((1 + percent) / 2., len(self.data)-1)
-        k = math.sqrt(self.mean_variance[name][1]) / math.sqrt(len(self.data))
-        c = z * k
+        # k = math.sqrt(self.mean_variance[name][1]) / math.sqrt(len(self.data))
+        c = z * math.sqrt(self.mean_variance[name][1])
         return self.mean_variance[name][0] - c, self.mean_variance[name][0] + c
 

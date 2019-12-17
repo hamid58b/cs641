@@ -1,10 +1,6 @@
 
 from decorators import *
 from distributions import *
-import scipy.stats
-
-# Deciding function that hires a person with these three parameters
-# pr(a | b) = pr(a & b) pr(b)
 
 domains = (Gaussian(25,100), Gaussian(10,25), Gaussian(0, 100))
 
@@ -38,6 +34,7 @@ def h(colRank, yExp, ethnicity):
 
 
 # Runtime Timings
+print("Starting Spec Domain Time Test")
 start = time.time()
 for i in range(1000):
     colRank = domains[0]()
@@ -48,7 +45,8 @@ print("Spec Domain: " + str(time.time() - start))
 
 
 start = time.time()
-for i in range(1000):
+print("Starting Spec Time Test")
+for i in range(2000):
     colRank = domains[0]()
     yExp = domains[1]()
     ethnicity = domains[2]()
